@@ -13,7 +13,7 @@ function Header() {
       </div>
 
       {/* Right section: Button wrapped in Link */}
-      <Link href="/dashboard">
+      <Link href="/dashboard/console">
         <Button className="hover:bg-red-700">
           Get started
         </Button>

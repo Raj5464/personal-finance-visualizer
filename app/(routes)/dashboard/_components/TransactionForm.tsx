@@ -1,70 +1,64 @@
 "use client";
 import React, { useState } from 'react';
 
-type TxInput = {
-  amount: number;
-  date: string;
-  description: string;
-};
-
-type TransactionFormProps = {
-  onAdd: (tx: TxInput) => void;
-};
-
-export function TransactionForm({ onAdd }: TransactionFormProps) {
-  const [amount, setAmount] = useState<string>('');
-  const [date, setDate] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-  const [error, setError] = useState<string>('');
+export const TransactionForm = ({ onAdd }: { onAdd: Function }) => {
+  const [amount, setAmount] = useState<number | string>('');
+  const [date, setDate] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const amt = parseFloat(amount);
-    if (isNaN(amt) || amt <= 0 || !date) {
-      setError('Amount and date are required, amount must be positive');
-      return;
+    if (amount && date && description && category) {
+      onAdd({ amount, date, description, category });
+      setAmount('');
+      setDate('');
+      setDescription('');
+      setCategory('');
     }
-    setError('');
-    onAdd({ amount: amt, date, description });
-    setAmount(''); setDate(''); setDescription('');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2 border p-4 rounded">
-      <div>
-        <label className="block font-medium">Amount:</label>
-        <input
-          type="number"
-          value={amount}
-          onChange={e => setAmount(e.target.value)}
-          className="w-full border p-2 rounded"
-          placeholder="Enter expense amount"
-        />
-      </div>
-      
-      <div>
-        <label className="block font-medium">Date:</label>
-        <input
-          type="date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-      </div>
-      <div>
-        <label className="block font-medium">Description:</label>
-        <input
-          type="text"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          className="w-full border p-2 rounded"
-          placeholder="Enter description (optional)"
-        />
-      </div>
-      <button type="submit" className="w-full bg-red-600 text-white py-2 rounded">
-        Add Expense
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-sm mx-auto">
+      <input
+        type="number"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        placeholder="Amount"
+        required
+        className="w-full p-2 border border-gray-300 rounded"
+      />
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        required
+        className="w-full p-2 border border-gray-300 rounded"
+      />
+      <input
+        type="text"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description"
+        required
+        className="w-full p-2 border border-gray-300 rounded"
+      />
+      <select
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        required
+        className="w-full p-2 border border-gray-300 rounded"
+      >
+        <option value="" disabled>Select Category</option>
+        <option value="Food">Food</option>
+        <option value="Transport">Transport</option>
+        <option value="Entertainment">Entertainment</option>
+        <option value="Utilities">Utilities</option>
+        <option value="Other">Other</option>
+      </select>
+      <button type="submit" className="w-full py-2 mt-4 bg-red-500 text-white rounded">
+        Add Transaction
       </button>
-      {error && <p className="text-red-500 text-sm">{error}</p>}
     </form>
   );
-}
+};

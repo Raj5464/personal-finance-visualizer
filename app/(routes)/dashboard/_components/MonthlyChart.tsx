@@ -19,7 +19,7 @@ export function MonthlyChart({ transactions }: MonthlyChartProps) {
         <XAxis dataKey="month" />
         <YAxis />
         <Tooltip />
-        <Bar dataKey="total" fill="#8884d8" />
+        <Bar dataKey="total" fill="#FF0000" />
       </BarChart>
     </ResponsiveContainer>
   );

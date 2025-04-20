@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowUpDown,
+  IndianRupeeIcon,
   LayoutDashboardIcon,
   PiggyBank,
   SquareChartGantt,
@@ -13,15 +14,16 @@ import { usePathname } from "next/navigation";
 
 const SideNav: React.FC = () => {
   const menuList = [
-    { id: 1, name: "Dashboard", icon: LayoutDashboardIcon, link: "/dashboard" },
+    { id: 1, name: "Dashboard", icon: LayoutDashboardIcon, link: "/dashboard/console" },
+    { id: 2, name: "Log expenses", icon: IndianRupeeIcon, link: "/dashboard" },
     {
-      id: 2,
+      id: 3,
       name: "Expenses",
       icon: ArrowUpDown,
       link: "/dashboard/expenses",
     },
-    { id: 3, name: "Budgets", icon: PiggyBank, link: "/dashboard/budgets" },
-    { id: 4, name: "Reports", icon: SquareChartGantt, link: "/dashboard/reports" },
+    { id: 4, name: "Budgets", icon: PiggyBank, link: "/dashboard/budgets" },
+    { id: 5, name: "Reports", icon: SquareChartGantt, link: "/dashboard/reports" },
   ];
 
   const pathname = usePathname();

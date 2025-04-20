@@ -1,32 +1,31 @@
+// app/(routes)/dashboard/_components/TransactionList.tsx
 "use client";
 import React from 'react';
 
-type Tx = {
-  id: string;
-  amount: number;
-  date: string;
-  description: string;
-};
-
-type TransactionListProps = {
-  transactions: Tx[];
+export const TransactionList = ({
+  transactions,
+  onDelete,
+}: {
+  transactions: any[];
   onDelete: (id: string) => void;
-};
-
-export function TransactionList({ transactions, onDelete }: TransactionListProps) {
+}) => {
   return (
-    <div className="space-y-2">
-      {transactions.map(tx => (
-        <div key={tx.id} className="flex justify-between items-center border p-2 rounded">
+    <div className="space-y-4">
+      {transactions.map((tx) => (
+        <div key={tx._id} className="flex justify-between items-center p-4 border border-gray-300 rounded">
           <div>
-            <p className="font-medium">${tx.amount.toFixed(2)}</p>
+            <p className="font-medium">₹{tx.amount}</p>
             <p className="text-sm text-gray-500">{tx.date} — {tx.description}</p>
+            <p className="text-sm text-gray-500">Category: {tx.category}</p>
           </div>
-          <button onClick={() => onDelete(tx.id)} className="text-red-600 hover:underline">
+          <button
+            onClick={() => onDelete(tx._id)}
+            className="text-red-600 hover:underline"
+          >
             Delete
           </button>
         </div>
       ))}
     </div>
   );
-}
+};
