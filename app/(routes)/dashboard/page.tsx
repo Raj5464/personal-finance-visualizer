@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from 'react';
-//import { IncomeInput } from './_components/IncomeInput';
 import { TransactionForm } from './_components/TransactionForm';
 import { TransactionList } from './_components/TransactionList';
 import { MonthlyChart } from './_components/MonthlyChart';
@@ -26,9 +25,7 @@ export default function DashboardPage() {
     setTransactions(prev => prev.filter(t => t.id !== id));
   };
 
-  // Calculate remaining balance
-  const totalExpenses = transactions.reduce((sum, tx) => sum + tx.amount, 0);
-  const remaining = income !== null ? income - totalExpenses : null;
+  
 
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-6">

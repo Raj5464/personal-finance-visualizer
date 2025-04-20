@@ -2,7 +2,7 @@ import React from 'react'
 import SideNav from './_components/SideNav'
 import DashboradHeader from './_components/DashboradHeader'
 
-function DashboardLayout({children}: any) {
+function DashboardLayout({children}: {children: React.ReactNode}) {
   return (
     <div>
 
