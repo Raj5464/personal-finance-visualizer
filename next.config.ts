@@ -7,3 +7,7 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+module.exports = {
+  env: {
+    MONGODB_URI: process.env.MONGODB_URI, },
+}
