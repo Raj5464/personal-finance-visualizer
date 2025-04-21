@@ -5,9 +5,3 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 };
-
-export default nextConfig;
-module.exports = {
-  env: {
-    MONGODB_URI: process.env.MONGODB_URI, },
-}
