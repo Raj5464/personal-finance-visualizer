@@ -44,8 +44,8 @@ export default function CategoryPieChart({ transactions }: CategoryPieChartProps
         nameKey="name"
         cx="50%"
         cy="50%"
-        innerRadius={70}
-        outerRadius={110}
+        innerRadius={50}
+        outerRadius={70}
         fill="#8884d8"
         labelLine={false}
         label={({  value }) => `₹${value.toFixed(2)}`} 

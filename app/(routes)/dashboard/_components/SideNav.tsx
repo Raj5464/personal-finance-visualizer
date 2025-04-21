@@ -7,8 +7,7 @@ import {
   ArrowUpDown,
   IndianRupeeIcon,
   LayoutDashboardIcon,
-  PiggyBank,
-  SquareChartGantt,
+  PiggyBank
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -23,7 +22,7 @@ const SideNav: React.FC = () => {
       link: "/dashboard/expenses",
     },
     { id: 4, name: "Budgets", icon: PiggyBank, link: "/dashboard/budgets" },
-    { id: 5, name: "Reports", icon: SquareChartGantt, link: "/dashboard/reports" },
+    
   ];
 
   const pathname = usePathname();

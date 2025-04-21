@@ -1,4 +1,4 @@
-// File: app/(routes)/dashboard/expenses/page.tsx
+// app/(routes)/dashboard/expenses/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -18,6 +18,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import CategoryPieChart from "./CategoryPieChart";
 
 interface Transaction {
@@ -28,25 +29,60 @@ interface Transaction {
   category: string;
 }
 
+interface BudgetData {
+  category: string;
+  amount: number;
+}
+
+interface BudgetResponse {
+  budgets?: Record<string, number>;
+  month?: string;
+}
+
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [budgetData, setBudgetData] = useState<{ totalBudget: number; totalSpent: number }>({ totalBudget: 0, totalSpent: 0 });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       try {
-        const res = await fetch("/api/transactions");
-        if (!res.ok) throw new Error("Failed to fetch transactions");
-        const data = await res.json();
-        const cleaned = data.map((t: any) => ({
+        // Fetch transactions
+        const txRes = await fetch("/api/transactions");
+        if (!txRes.ok) throw new Error("Failed to fetch transactions");
+        const txData = await txRes.json();
+        const cleaned = txData.map((t: any) => ({
           ...t,
-          amount:
-            typeof t.amount === "string" ? parseFloat(t.amount) : t.amount,
+          amount: typeof t.amount === "string" ? parseFloat(t.amount) : t.amount,
         }));
         setTransactions(cleaned);
+
+        // Fetch budget and spending for current month
+        const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+        const budgetRes = await fetch(`/api/budgets?month=${currentMonth}`, { cache: "no-store" });
+        if (!budgetRes.ok) throw new Error("Failed to fetch budgets");
+        const budgetData: BudgetResponse = await budgetRes.json();
+        const budgets = budgetData.budgets || { Entertainment: 0, Transport: 0, Food: 0, Utilities: 0, Other: 0 };
+        const totalBudget = Object.values(budgets).reduce((sum: number, val: number) => sum + val, 0);
+
+        let totalSpent = 0;
+        try {
+          const spentRes = await fetch(`/api/transactions/summary?month=${currentMonth}`, { cache: "no-store" });
+          if (!spentRes.ok) throw new Error("Failed to fetch spent amounts");
+          const spentData: BudgetData[] = await spentRes.json();
+          totalSpent = spentData.reduce((sum: number, item: BudgetData) => sum + item.amount, 0);
+        } catch (spentError) {
+          console.warn("Spent data fetch failed, using totalSpent = 0:", spentError);
+        }
+
+        setBudgetData({ totalBudget, totalSpent });
       } catch (err) {
         console.error(err);
         setError("Error fetching data");
+      } finally {
+        setLoading(false);
       }
     }
     fetchData();
@@ -83,9 +119,7 @@ export default function DashboardPage() {
     };
   });
 
-  // Simulated budget for demonstration
-  const budget = 50000;
-  const usedPct = Math.min(100, (totalExpense / budget) * 100);
+  const usedPct = budgetData.totalBudget > 0 ? Math.min(100, (budgetData.totalSpent / budgetData.totalBudget) * 100) : 0;
 
   return (
     <div className="min-h-screen p-6 bg-gray-100">
@@ -95,13 +129,15 @@ export default function DashboardPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="h-32">
-          <CardHeader className="">
+          <CardHeader>
             <CardTitle>Total Expenses</CardTitle>
           </CardHeader>
-          <CardContent >
-            <p className="text-2xl font-semibold pb-20">
-              ₹{totalExpense.toFixed(2)}
-            </p>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <p className="text-2xl font-semibold">₹{totalExpense.toFixed(2)}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -110,11 +146,14 @@ export default function DashboardPage() {
             <CardTitle>Most Recent</CardTitle>
           </CardHeader>
           <CardContent>
-            {latestTransaction ? (
+            {loading ? (
               <>
-                <p className="font-medium text-sm ">
-                  {latestTransaction.description}
-                </p>
+                <Skeleton className="h-4 w-32 mb-2" />
+                <Skeleton className="h-3 w-24" />
+              </>
+            ) : latestTransaction ? (
+              <>
+                <p className="font-medium text-sm">{latestTransaction.description}</p>
                 <p className="text-xs text-muted-foreground">
                   ₹{latestTransaction.amount.toFixed(2)} • {latestTransaction.category}
                 </p>
@@ -130,28 +169,37 @@ export default function DashboardPage() {
             <CardTitle>Budget Utilization</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col justify-center">
-            <p className="text-sm mb-2">
-              Stage 3 Update
-              
-            </p>
-         
+            {loading ? (
+              <>
+                <Skeleton className="h-4 w-40 mb-2" />
+                <Skeleton className="h-3 w-32" />
+              </>
+            ) : (
+              <>
+                <p className="text-sm mb-1">
+                  ₹{budgetData.totalSpent.toFixed(2)} of ₹{budgetData.totalBudget.toFixed(2)}
+                </p>
+                <Progress value={usedPct} className="h-2" />
+              </>
+            )}
           </CardContent>
         </Card>
-       
       </div>
-     
 
-      {/* Main Content: Weekly Sparkline & Transactions List */}
-      <div >
-      <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Category Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
+      {/* Main Content: Category Pie Chart, Weekly Sparkline & Transactions List */}
+      <div>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Category Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-[200px] w-full" />
+            ) : (
               <CategoryPieChart transactions={transactions} />
-            </CardContent>
-          </Card>
-
+            )}
+          </CardContent>
+        </Card>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 h-[250px]">
@@ -159,21 +207,25 @@ export default function DashboardPage() {
             <CardTitle>Weekly Spending</CardTitle>
           </CardHeader>
           <CardContent className="h-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={sparkData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {loading ? (
+              <Skeleton className="h-full w-full" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={sparkData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
@@ -182,7 +234,13 @@ export default function DashboardPage() {
             <CardTitle>All Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            {transactions.length === 0 ? (
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ) : transactions.length === 0 ? (
               <p className="text-sm">No transactions found</p>
             ) : (
               <ul className="space-y-2 text-sm">
